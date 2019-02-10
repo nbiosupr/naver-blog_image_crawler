@@ -19,45 +19,6 @@ reg = re.compile('src="http://postfiles[0-9]+[.]naver[.]net(?P<img>/[^ ]*[.][a-z
 # 네트워크가 끊겼을 경우 다시 다운로드 시도할 횟수 제한
 LIMIT_DOWNLOAD_RETRYING = 5
 
-# scrap
-# 게시글 내 이미지들의 원본 URL을 list로 묶어 반환합니다.
-# This function return list of original url of image in article
-
-# driver : webdriver
-# 셀레니엄 드라이버입니다.
-# This is Selenium driver
-
-# url : str
-# 게시글의 주소입니다.
-# URL Address of cafe article
-def scrap(driver: webdriver, url: str):
-    images = list()
-
-    driver.get(url)
-
-    soup = BeautifulSoup(driver.page_source, 'lxml')
-    img_tag = soup.select('#photoview')
-    image = reg.search(str(img_tag))
-    if bool(image):
-        images.append(str(image.group('img')))
-        return images
-
-    try:
-        driver.switch_to.frame("cafe_main")
-    except NoSuchFrameException:
-        raise InvalidURLException(url)
-
-    soup = BeautifulSoup(driver.page_source, 'lxml')
-
-    lines = soup.select('#attachLayer > ul > script')
-
-    for line in lines:
-        m = reg.search(str(line))
-        if bool(m):
-            images.append(str(m.group('img')))
-
-    return images
-
 
 # scrap_by_id
 # 게시글 내 이미지들의 원본 URL을 list로 묶어 반환합니다.
@@ -67,14 +28,14 @@ def scrap(driver: webdriver, url: str):
 # 셀레니엄 드라이버입니다.
 # This is Selenium driver
 
-# cafe_id : int
+# blog_id : str
 # 카페의 아이디입니다.
 # ID of cafe
 
-# article_id : int
+# log_no : int
 # 게시글의 아이디입니다.
 # ID of article
-def scrap_by_id(driver: webdriver, blog_id: int, log_no: int):
+def scrap_by_id(driver: webdriver, blog_id: str, log_no: int):
     url = make_post_url_by_id(blog_id, log_no)
     images = list()
 
@@ -113,8 +74,8 @@ def extract_file_name(url: str):
 # URL Address which image is located
 
 # dir_path : str
-# 이미지를 저장할 폴더의 주소 (끝에 반드시 /(슬래시)를 붙일 것)
-# directory path to save image (You have to attach /(slash) to end)
+# 이미지를 저장할 폴더의 주소
+# directory path to save image
 
 def download_image(url: str, dir_path: str):
     file_name = extract_file_name(url)
